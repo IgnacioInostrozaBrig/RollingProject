@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class CarController : MonoBehaviour
 {
-    public float speed = 10f;
-    public float turnSpeed = 50f;
+    public float maxSpeed = 20f;
+    public float acceleration = 5f;
+    public float turnSpeed = 100f;
 
     private Rigidbody rb;
+    private float currentSpeed = 0f;
 
     void Start()
     {
@@ -16,13 +18,14 @@ public class CarController : MonoBehaviour
 
     void FixedUpdate()
     {
-        float moveInput = Input.GetAxis("Vertical");
+        // Acceleration and braking
+        float accelerationInput = Input.GetAxis("Vertical");
+        currentSpeed = Mathf.Clamp(currentSpeed + accelerationInput * acceleration * Time.fixedDeltaTime, -maxSpeed, maxSpeed);
+        rb.velocity = transform.forward * currentSpeed;
+
+        // Steering
         float turnInput = Input.GetAxis("Horizontal");
-
-        // Move the car forward/backward
-        rb.AddRelativeForce(Vector3.forward * moveInput * speed);
-
-        // Rotate the car left/right
-        transform.Rotate(Vector3.up, turnInput * turnSpeed * Time.fixedDeltaTime);
+        float turn = turnInput * turnSpeed * Time.fixedDeltaTime * Mathf.Clamp01(rb.velocity.magnitude / maxSpeed);
+        transform.Rotate(Vector3.up, turn);
     }
 }
