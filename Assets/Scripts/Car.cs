@@ -7,7 +7,7 @@ public class CarController : MonoBehaviour
 {
     public float maxSpeed = 20f;
     public float acceleration = 5f;
-    public float deceleration = 2f; // Added deceleration rate
+    public float deceleration = 2f;
     public float turnSpeed = 100f;
 
     private Rigidbody rb;
@@ -20,7 +20,6 @@ public class CarController : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Acceleration
         float accelerationInput = Input.GetAxis("Vertical");
         if (accelerationInput != 0f)
         {
@@ -28,13 +27,10 @@ public class CarController : MonoBehaviour
         }
         else
         {
-            // Deceleration when not accelerating
             float decelerationAmount = Mathf.Sign(currentSpeed) * deceleration * Time.fixedDeltaTime;
             currentSpeed = Mathf.Clamp(currentSpeed - decelerationAmount, -maxSpeed, maxSpeed);
         }
         rb.velocity = transform.forward * currentSpeed;
-
-        // Steering
         float turnInput = Input.GetAxis("Horizontal");
         float turn = turnInput * turnSpeed * Time.fixedDeltaTime * Mathf.Clamp01(rb.velocity.magnitude / maxSpeed);
         transform.Rotate(Vector3.up, turn);
