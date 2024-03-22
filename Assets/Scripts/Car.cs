@@ -15,10 +15,14 @@ public class CarController : MonoBehaviour
     public float airAngularDrag;
     public float traction;
     public LayerMask groundLayer; // Define the ground layer
+    public float boostForce = 500f; // Adjust this value according to your needs
+    public float boostDuration = 2f; // Adjust the duration as needed
 
     private Rigidbody rb;
     private bool isGrounded;
     private Vector3 movementForce;
+
+    private Coroutine boostCoroutine;
 
     void Start()
     {
@@ -39,7 +43,7 @@ public class CarController : MonoBehaviour
         // Apply acceleration force if grounded
         if (isGrounded)
         {
-            if(brakeInput > 0 && rb.velocity.magnitude > 0.1f)
+            if (brakeInput > 0 && rb.velocity.magnitude > 0.1f)
             {
                 movementForce -= rb.velocity.normalized * deceleration * Time.deltaTime;
             }
@@ -58,8 +62,8 @@ public class CarController : MonoBehaviour
         }
 
         if (isGrounded)
-            {
-                if (rb.velocity.magnitude < 10)
+        {
+            if (rb.velocity.magnitude < 10)
             {
                 currentTurnFactor = Mathf.Lerp(0f, 1f, Mathf.Abs(rb.velocity.magnitude / 10));
             }
@@ -75,19 +79,61 @@ public class CarController : MonoBehaviour
                 turn *= -1;
             }
             transform.Rotate(Vector3.up * turn);
-            movementForce *= 1-drag/100;
+            movementForce *= 1 - drag / 100;
             movementForce = Vector3.Lerp(movementForce.normalized, transform.forward, traction * Time.deltaTime) * movementForce.magnitude;
 
         }
         else
         {
-            movementForce = new Vector3(rb.velocity.x,0f,rb.velocity.z)*1;
+            movementForce = new Vector3(rb.velocity.x, 0f, rb.velocity.z) * 1;
             movementForce = Vector3.Lerp(movementForce.normalized, transform.forward, traction * Time.deltaTime) * movementForce.magnitude;
         }
+    }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Check if the collision is with another car
+        if (collision.gameObject.CompareTag("Player")) // Assuming your car has the "Player" tag
+        {
+            Rigidbody otherCarRigidbody = collision.gameObject.GetComponent<Rigidbody>();
+            if (otherCarRigidbody != null)
+            {
+                // Transfer a portion of the speed to the other car
+                Vector3 collisionForce = rb.velocity * 0f; // Adjust the multiplier as needed
+                otherCarRigidbody.AddForce(collisionForce, ForceMode.Impulse);
+            }
+        }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("SpeedBoost"))
+        {
+            // Apply the speed boost
+            rb.AddForce(transform.forward * boostForce, ForceMode.Impulse);
 
-        // Debug visualization
-        Debug.DrawRay(transform.position, transform.forward * 5f, Color.red);
-        Debug.DrawRay(transform.position, movementForce.normalized * 5f, Color.green);
+            // Destroy the speed cube after collecting the boost
+            Destroy(other.gameObject);
+        }
+    }
+
+    private IEnumerator ApplyAndDecreaseSpeedBoost()
+    {
+        // Apply the speed boost
+        rb.AddForce(transform.forward * boostForce, ForceMode.Impulse);
+
+        // Wait for the duration of the boost
+        yield return new WaitForSeconds(boostDuration);
+
+        // Reset the coroutine and decrease the speed boost (optional)
+        boostCoroutine = null;
+    }
+
+    private IEnumerator CollectBoostAfterCurrentBoost()
+    {
+        while (boostCoroutine != null)
+        {
+            yield return null; // Wait until the current boost is finished
+        }
+        boostCoroutine = StartCoroutine(ApplyAndDecreaseSpeedBoost()); // Start the new boost coroutine
     }
 }
