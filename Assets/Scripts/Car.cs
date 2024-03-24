@@ -88,22 +88,36 @@ public class CarController : MonoBehaviour
             movementForce = new Vector3(rb.velocity.x, 0f, rb.velocity.z) * 1;
             movementForce = Vector3.Lerp(movementForce.normalized, transform.forward, traction * Time.deltaTime) * movementForce.magnitude;
         }
-    }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        // Check if the collision is with another car
-        if (collision.gameObject.CompareTag("Player")) // Assuming your car has the "Player" tag
+        // Reset car position and rotation if it gets flipped over and R key is pressed
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            Rigidbody otherCarRigidbody = collision.gameObject.GetComponent<Rigidbody>();
-            if (otherCarRigidbody != null)
-            {
-                // Transfer a portion of the speed to the other car
-                Vector3 collisionForce = rb.velocity * 0f; // Adjust the multiplier as needed
-                otherCarRigidbody.AddForce(collisionForce, ForceMode.Impulse);
-            }
+            ResetCarPosition();
+        }
+
+        // Reset car position and rotation if it gets flipped over and R key is pressed
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            Restart();
         }
     }
+
+    private void Restart()
+    {
+        Vector3 resetPosition = Vector3.up * 2f;
+        transform.position = resetPosition;
+        transform.rotation = Quaternion.identity; // Reset rotation to identity (no rotation)
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+
+    private void ResetCarPosition()
+    {
+        transform.rotation = Quaternion.identity; // Reset rotation to identity (no rotation)
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("SpeedBoost"))
@@ -114,26 +128,5 @@ public class CarController : MonoBehaviour
             // Destroy the speed cube after collecting the boost
             Destroy(other.gameObject);
         }
-    }
-
-    private IEnumerator ApplyAndDecreaseSpeedBoost()
-    {
-        // Apply the speed boost
-        rb.AddForce(transform.forward * boostForce, ForceMode.Impulse);
-
-        // Wait for the duration of the boost
-        yield return new WaitForSeconds(boostDuration);
-
-        // Reset the coroutine and decrease the speed boost (optional)
-        boostCoroutine = null;
-    }
-
-    private IEnumerator CollectBoostAfterCurrentBoost()
-    {
-        while (boostCoroutine != null)
-        {
-            yield return null; // Wait until the current boost is finished
-        }
-        boostCoroutine = StartCoroutine(ApplyAndDecreaseSpeedBoost()); // Start the new boost coroutine
     }
 }
