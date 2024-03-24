@@ -12,7 +12,7 @@ public class DestroyableCar : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!isDestroyed && collision.gameObject.CompareTag("Player")) // Assuming the collision is with the player's car and car is not destroyed yet
+        if (!isDestroyed && collision.gameObject.CompareTag("Breaker")) // Assuming the collision is with the player's car and car is not destroyed yet
         {
             // Check collision force magnitude
             if (collision.relativeVelocity.magnitude >= minimumCollisionForce)
