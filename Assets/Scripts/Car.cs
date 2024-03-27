@@ -92,7 +92,9 @@ public class CarController : MonoBehaviour
         // Reset car position and rotation if it gets flipped over and R key is pressed
         if (Input.GetKeyDown(KeyCode.R))
         {
-            ResetCarPosition();
+            transform.rotation = Quaternion.identity; // Reset rotation to identity (no rotation)
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
 
         // Reset car position and rotation if it gets flipped over and R key is pressed
@@ -106,13 +108,6 @@ public class CarController : MonoBehaviour
     {
         Vector3 resetPosition = Vector3.up * 2f;
         transform.position = resetPosition;
-        transform.rotation = Quaternion.identity; // Reset rotation to identity (no rotation)
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-    }
-
-    private void ResetCarPosition()
-    {
         transform.rotation = Quaternion.identity; // Reset rotation to identity (no rotation)
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
